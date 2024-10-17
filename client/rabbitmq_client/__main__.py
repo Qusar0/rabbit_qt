@@ -4,7 +4,7 @@ import uuid
 from PyQt5.QtCore import pyqtSignal, QThread, QTimer, QObject
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QPlainTextEdit, QDialog, QVBoxLayout
 import sys
-from ui import Ui_MainWindow
+from mainUI import Ui_MainWindow
 import logging
 
 class LogHandler(logging.Handler, QObject):
@@ -63,10 +63,11 @@ class Client(QThread):
     def on_response(self, ch, method, props, body):
         self.response = Response()
         self.response.ParseFromString(body)
-        logging.info(f"Получен ответ для request_id '{self.response.request_id}' со значением {self.response.response}")
-        self.response_received.emit(f"Ответ: {self.response.response}")
+        # logging.info(f"Получен ответ для request_id '{self.response.request_id}' со значением {self.response.response}")
+        self.response_received.emit(str(self.response.response))
 
     def call(self, request, timeout):
+        print(self.timeout, self.request)
         self.timeout = timeout
         self.request = request
         self.start()
@@ -107,14 +108,14 @@ class MainWindow(QMainWindow):
         self.client = Client()
         self.client.response_received.connect(self.show_response)
 
-        self.log_window = LogWindow()
         self.init_logging()
 
-        send_request_btn = self.ui.sendRequestPushButton
-        send_request_btn.setCheckable(True)
+        send_request_btn = self.ui.sendRequesPushButton
         send_request_btn.clicked.connect(self.send_request)
 
-        self.ui.logsPushButton.clicked.connect(self.show_logs)
+        self.ui.timeoutCheckBox.clicked.connect(self.is_enabled)
+
+        self.ui.rquestProgressBar.setVisible(False)
 
         self.progress_timer = QTimer(self)
         self.progress_timer.timeout.connect(self.update_progress_bar)
@@ -122,7 +123,7 @@ class MainWindow(QMainWindow):
         self.timeout = 0
 
     def init_logging(self):
-        log_handler = LogHandler(self.log_window.log_widget)
+        log_handler = LogHandler(self.ui.logsPlainTextEdit)
         log_handler.setFormatter(logging.Formatter('%(levelname)s - %(message)s - %(asctime)s'))
 
         logger = logging.getLogger()
@@ -134,17 +135,16 @@ class MainWindow(QMainWindow):
 
     def send_request(self):
         try:
-            request = int(self.ui.inputNumberTextBox.text())
-            timeout_str = self.ui.inputSleepTimeTextBox.text()
-            if len(timeout_str) > 0 and int(timeout_str) > 0:
-                self.timeout = int(timeout_str)
-                self.ui.progressBar.setValue(0)
+            request = self.ui.requestSpinBox.value()
+            timeout = self.ui.timeoutDoubleSpinBox.value()
+            if  timeout > 0:
+                self.timeout = int(timeout)
+                self.ui.rquestProgressBar.setValue(0)
 
                 self.time_elapsed = 0
                 self.progress_timer.start(100)
-                self.ui.progressBar.setVisible(True)
+                self.ui.rquestProgressBar.setVisible(True)
 
-            self.ui.cancelRequestPushButton.setVisible(True)
 
             self.client.call(request, self.timeout)
         except ValueError:
@@ -160,16 +160,19 @@ class MainWindow(QMainWindow):
     def update_progress_bar(self):
         self.time_elapsed += 0.1
         progress = int((self.time_elapsed / self.timeout) * 100)
-        self.ui.progressBar.setValue(progress)
+        self.ui.rquestProgressBar.setValue(progress)
 
         if self.time_elapsed >= self.timeout:
             self.progress_timer.stop()
 
     def show_response(self, response):
-        self.ui.label_2.setVisible(True)
-        self.ui.resultLabel.setText(response)
+        self.ui.requestResultLabel.setText(response)
+        print(response)
         self.ui.cancelRequestPushButton.setVisible(False)
-        self.ui.progressBar.setVisible(False)
+
+    def is_enabled(self):
+        flag = self.ui.timeoutCheckBox.isChecked()
+        self.ui.timeoutDoubleSpinBox.setEnabled(flag)
         
 
 if __name__ == "__main__":

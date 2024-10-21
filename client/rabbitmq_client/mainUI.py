@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(812, 651)
+        MainWindow.setFixedSize(812, 651)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.requestGroupBox = QtWidgets.QGroupBox(self.centralwidget)
@@ -26,6 +26,7 @@ class Ui_MainWindow(object):
         self.requestGroupBox.setObjectName("requestGroupBox")
         self.requestSpinBox = QtWidgets.QSpinBox(self.requestGroupBox)
         self.requestSpinBox.setGeometry(QtCore.QRect(320, 50, 131, 26))
+        self.requestSpinBox.setMaximum(1000)
         font = QtGui.QFont()
         font.setPointSize(14)
         self.requestSpinBox.setFont(font)
@@ -111,10 +112,6 @@ class Ui_MainWindow(object):
         font.setPointSize(14)
         self.settingsPushButton.setFont(font)
         self.settingsPushButton.setObjectName("settingsPushButton")
-        self.rquestProgressBar = QtWidgets.QProgressBar(self.groupBox_2)
-        self.rquestProgressBar.setGeometry(QtCore.QRect(470, 50, 118, 31))
-        self.rquestProgressBar.setProperty("value", 0)
-        self.rquestProgressBar.setObjectName("rquestProgressBar")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 812, 22))

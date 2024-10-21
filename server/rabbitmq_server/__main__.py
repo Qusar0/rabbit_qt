@@ -26,22 +26,28 @@ async def on_request(message: aio_pika.IncomingMessage):
         )
         logging.info(f"Sent response: {response.request_id}, value: {response.response} at time {datetime.now()}")
 
+async def connect_to_rabbitmq(server_settings):
+    while True:
+        try:
+            connection = await aio_pika.connect_robust(server_settings['broker_url'])
+            channel = await connection.channel()
+
+            exchange = await channel.declare_exchange(server_settings['exchange_name'], aio_pika.ExchangeType.DIRECT)
+            queue = await channel.declare_queue('server_queue')
+
+            await queue.bind(exchange)
+            
+            logging.info('Server is running and waiting for messages.')
+
+            await queue.consume(on_request)
+            await asyncio.Future()
+        except (aio_pika.exceptions.AMQPConnectionError, ConnectionError) as e:
+            logging.error(f"Connection to broker failed: {e}. Retrying in 5 seconds...")
+            await asyncio.sleep(5)
+
+
 async def main(server_settings):
-    connection = await aio_pika.connect_robust(server_settings['broker_url'])
-
-    channel = await connection.channel()
-
-
-    exchange = await channel.declare_exchange(server_settings['exchange_name'], aio_pika.ExchangeType.DIRECT)
-    queue = await channel.declare_queue('server_queue')
-
-    await queue.bind(exchange)
-
-    print('Server is running')
-
-    await queue.consume(on_request)
-
-    await asyncio.Future()
+    await connect_to_rabbitmq(server_settings)
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()

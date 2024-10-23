@@ -5,53 +5,61 @@ import logging
 from protobuf.message_pb2 import Request, Response
 from datetime import datetime
 
-async def on_request(message: aio_pika.IncomingMessage):
-    async with message.process():
-        request = Request()
-        request.ParseFromString(message.body)
-        logging.info(f"Received request: {request.request_id}, value: {request.request} with timeout: {request.proccess_time_in_seconds} at time {datetime.now()}")
+class Server:
+    def __init__(self, server_settings):
+        self.server_settings = server_settings
+        self.connection = None
+        self.channel = None
 
-        if request.proccess_time_in_seconds > 0:
-            await asyncio.sleep(request.proccess_time_in_seconds)
+    async def on_request(self, message: aio_pika.IncomingMessage):
+        async with message.process():
+            request = Request()
+            request.ParseFromString(message.body)
 
-        response = Response(
-            request_id=request.request_id,
-            response=request.request * 2
-        )
+            logging.info(f"Received request: {request.request_id}, value: {request.request} with timeout: {request.proccess_time_in_seconds} at time {datetime.now()}")
 
-        await message.channel.basic_publish(
-            body=response.SerializeToString(),
-            exchange='',
-            routing_key=message.reply_to
-        )
-        logging.info(f"Sent response: {response.request_id}, value: {response.response} at time {datetime.now()}")
+            if request.proccess_time_in_seconds > 0:
+                await asyncio.sleep(request.proccess_time_in_seconds)
 
-async def connect_to_rabbitmq(server_settings):
-    while True:
-        try:
-            connection = await aio_pika.connect_robust(server_settings['broker_url'])
-            channel = await connection.channel()
+            response = Response(
+                request_id=request.request_id,
+                response=request.request * 2
+            )
 
-            exchange = await channel.declare_exchange(server_settings['exchange_name'], aio_pika.ExchangeType.DIRECT)
-            queue = await channel.declare_queue('server_queue')
+            await message.channel.basic_publish(
+                body=response.SerializeToString(),
+                exchange='',
+                routing_key=message.reply_to,
+            )
+            logging.info(f"Sent response: {response.request_id}, value: {response.response} at time {datetime.now()}")
 
-            await queue.bind(exchange)
-            
-            logging.info('Server is running and waiting for messages.')
+    async def connect_to_rabbitmq(self):
+        while True:
+            try:
+                self.connection = await aio_pika.connect_robust(self.server_settings['broker_url'])
+                self.channel = await self.connection.channel()
 
-            await queue.consume(on_request)
-            await asyncio.Future()
-        except (aio_pika.exceptions.AMQPConnectionError, ConnectionError) as e:
-            logging.error(f"Connection to broker failed: {e}. Retrying in 5 seconds...")
-            await asyncio.sleep(5)
+                exchange = await self.channel.declare_exchange(self.server_settings['exchange_name'], aio_pika.ExchangeType.DIRECT)
+                queue = await self.channel.declare_queue('server_queue')
 
+                await queue.bind(exchange)
 
-async def main(server_settings):
-    await connect_to_rabbitmq(server_settings)
+                logging.info('Server is running and waiting for messages.')
+
+                await queue.consume(self.on_request)
+                await asyncio.Future()
+            except (aio_pika.exceptions.AMQPConnectionError, ConnectionError) as e:
+                logging.error(f"Connection to broker failed: {e}. Retrying in 5 seconds...")
+                await asyncio.sleep(5)
+
+    async def start(self):
+        await self.connect_to_rabbitmq()
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read('config.ini')
     server_settings = config['Server']
     logging.basicConfig(level=server_settings['log_level'], filename=server_settings['log_file'])
-    asyncio.run(main(server_settings))
+
+    server = Server(server_settings)
+    asyncio.run(server.start())

@@ -6,7 +6,7 @@ from logger import LogHandler
 import logging
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -18,31 +18,40 @@ class MainWindow(QMainWindow):
         self.client.response_received.connect(self.show_response)
         self.client.log_signal.connect(self.log_message)
 
-        send_request_btn = self.ui.sendRequesPushButton
-        send_request_btn.clicked.connect(self.send_request)
-
+        self.ui.sendRequesPushButton.clicked.connect(self.send_request)
+        self.ui.cancelRequestPushButton.clicked.connect(self.cancel_request)
         self.ui.timeoutCheckBox.clicked.connect(self.is_enabled)
 
-    def log_message(self, message):
-        self.logger.info(message)
-
-    def init_logs_settings(self):
+    def init_logs_settings(self) -> None:
         self.logger = logging.getLogger(__name__)
         self.logger.addHandler(self.log_handler)
         self.logger.setLevel(logging.INFO)
 
-    def send_request(self):
-        request = self.ui.requestSpinBox.value()
-        timeout = self.ui.timeoutDoubleSpinBox.value()
-        self.logger.info(f"Отправлен запрос для request_id '{request}' со значением {request}, задержка {timeout} сек")
-        self.client.call(request, timeout)
-            
+    def show_response(self, response: int) -> None:
+        self.ui.sendRequesPushButton.setEnabled(True)
+        self.ui.cancelRequestPushButton.setEnabled(False)
 
-    def show_response(self, response):
         self.ui.requestResultLabel.setText(response)
-        self.ui.cancelRequestPushButton.setVisible(False)
 
-    def is_enabled(self):
+    def log_message(self, message: str) -> None:
+        self.logger.info(message)
+
+    def send_request(self) -> None:
+        request = self.ui.requestSpinBox.value()
+        timeout = 0
+        if self.ui.timeoutCheckBox.isChecked():
+            timeout = self.ui.timeoutDoubleSpinBox.value()
+            
+        self.ui.sendRequesPushButton.setEnabled(False)
+        self.ui.cancelRequestPushButton.setEnabled(True)
+        self.client.call(request, timeout)
+
+    def cancel_request(self):
+        self.client.cancel_request()
+        self.ui.sendRequesPushButton.setEnabled(True)
+        self.ui.cancelRequestPushButton.setEnabled(False)
+
+    def is_enabled(self) -> None:
         flag = self.ui.timeoutCheckBox.isChecked()
         self.ui.timeoutDoubleSpinBox.setEnabled(flag)
         

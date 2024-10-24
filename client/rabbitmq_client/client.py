@@ -2,8 +2,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 import pika
 import uuid
 from protobuf.message_pb2 import Response, Request
-import logging
-from logger import LogHandler
+
 
 class Client(QThread):
     response_received = pyqtSignal(str)

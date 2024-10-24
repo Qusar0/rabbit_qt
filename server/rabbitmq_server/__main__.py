@@ -38,6 +38,7 @@ async def connect_to_rabbitmq(server_settings):
             await queue.bind(exchange)
             
             logging.info('Server is running and waiting for messages.')
+            print('Server is running and waiting for messages.')
 
             await queue.consume(on_request)
             await asyncio.Future()

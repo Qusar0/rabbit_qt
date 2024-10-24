@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './broker.ui'
+# Form implementation generated from reading ui file 'broker.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #
@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.setFixedSize(812, 651)
+        MainWindow.resize(812, 651)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.requestGroupBox = QtWidgets.QGroupBox(self.centralwidget)
@@ -26,7 +26,6 @@ class Ui_MainWindow(object):
         self.requestGroupBox.setObjectName("requestGroupBox")
         self.requestSpinBox = QtWidgets.QSpinBox(self.requestGroupBox)
         self.requestSpinBox.setGeometry(QtCore.QRect(320, 50, 131, 26))
-        self.requestSpinBox.setMaximum(1000)
         font = QtGui.QFont()
         font.setPointSize(14)
         self.requestSpinBox.setFont(font)
@@ -99,7 +98,6 @@ class Ui_MainWindow(object):
         font.setPointSize(14)
         self.cancelRequestPushButton.setFont(font)
         self.cancelRequestPushButton.setObjectName("cancelRequestPushButton")
-        self.cancelRequestPushButton.setEnabled(False)
         self.logsPlainTextEdit = QtWidgets.QPlainTextEdit(self.groupBox_2)
         self.logsPlainTextEdit.setGeometry(QtCore.QRect(30, 140, 721, 171))
         font = QtGui.QFont()

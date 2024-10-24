@@ -99,6 +99,7 @@ class Ui_MainWindow(object):
         font.setPointSize(14)
         self.cancelRequestPushButton.setFont(font)
         self.cancelRequestPushButton.setObjectName("cancelRequestPushButton")
+        self.cancelRequestPushButton.setEnabled(False)
         self.logsPlainTextEdit = QtWidgets.QPlainTextEdit(self.groupBox_2)
         self.logsPlainTextEdit.setGeometry(QtCore.QRect(30, 140, 721, 171))
         font = QtGui.QFont()

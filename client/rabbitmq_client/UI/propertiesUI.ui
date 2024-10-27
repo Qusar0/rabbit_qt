@@ -196,7 +196,7 @@
     <string>Имя queue</string>
    </property>
   </widget>
-  <widget class="QTextEdit" name="exchangeNameTextEdit_2">
+  <widget class="QTextEdit" name="queueNameTextEdit">
    <property name="geometry">
     <rect>
      <x>230</x>

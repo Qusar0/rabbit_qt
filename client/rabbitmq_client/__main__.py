@@ -6,7 +6,7 @@ import configparser
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read('../config.ini')
     client_settings = config['Client']
 
     app = QApplication(sys.argv)

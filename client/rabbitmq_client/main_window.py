@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QMainWindow
-from mainUI import Ui_MainWindow
+from PyQt5.QtWidgets import QMainWindow, QDialog
+from UI.mainUI import Ui_MainWindow
 from properties_dialog import PropertiesDialog
 from client import Client
 from logger import LogHandler
@@ -10,12 +10,14 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-
+        self.client_settings = client_settings
+        
         self.log_handler = LogHandler(self.ui.logsPlainTextEdit)
         self.init_logs_settings()
 
-        self.client = Client(client_settings)
+        self.client = Client(self.client_settings)
         self.client.response_received.connect(self.show_response)
+        self.client.responce_not_recieved.connect(self.change_buttons)
         self.client.log_signal.connect(self.log_message)
 
         self.ui.sendRequesPushButton.clicked.connect(self.send_request)
@@ -57,6 +59,11 @@ class MainWindow(QMainWindow):
         self.ui.timeoutDoubleSpinBox.setEnabled(flag)
 
     def open_properties_dialog(self) -> None:
-        dialog = PropertiesDialog()
-        dialog.open_properties_dialog()
-        
+        dialog = PropertiesDialog(self.client_settings)
+        if dialog.exec_() == QDialog.Accepted:
+            self.client_settings = dialog.get_client_settings()
+            self.client.update_settings(self.client_settings)
+
+    def change_buttons(self):
+        self.ui.sendRequesPushButton.setEnabled(True)
+        self.ui.cancelRequestPushButton.setEnabled(False)

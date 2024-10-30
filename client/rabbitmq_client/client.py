@@ -1,3 +1,4 @@
+import pika.adapters.blocking_connection
 from PyQt5.QtCore import QThread, pyqtSignal
 import pika
 from uuid import uuid4
@@ -8,7 +9,7 @@ from time import time, sleep
 
 class Client(QThread):
     response_received = pyqtSignal(str)
-    log_signal = pyqtSignal(str)
+    log_signal = pyqtSignal(str, str)
     responce_not_recieved = pyqtSignal(bool)
 
     def __init__(self, client_settings):
@@ -42,7 +43,7 @@ class Client(QThread):
                     on_message_callback=self.on_response,
                     auto_ack=True
                 )
-                self.log_signal.emit("Подключение установлено успешно.")
+                self.log_signal.emit("Подключение установлено успешно.", 'info')
                 
                 if self.reconnecting:
                     self.reconnecting = False
@@ -50,20 +51,20 @@ class Client(QThread):
                 return
             
             except pika.exceptions.AMQPConnectionError as e:
-                self.log_signal.emit("Попытка подключения...")
+                self.log_signal.emit("Попытка подключения...", 'warning')
                 sleep(5)
         
-        self.log_signal.emit(f"Не удалось подключиться за {connection_timeout} секунд.")
+        self.log_signal.emit(f"Не удалось подключиться за {connection_timeout} секунд.", 'error')
         self.responce_not_recieved.emit(True)
 
     def on_response(self, ch, method, props, body):
         if props.correlation_id == self.corr_id: 
             self.response = Response()
             self.response.ParseFromString(body)
-            self.log_signal.emit(f"Получен ответ для request_id '{self.response.request_id}' со значением {self.response.response}")
+            self.log_signal.emit(f"Получен ответ для request_id '{self.response.request_id}' со значением {self.response.response}", 'info')
             self.response_received.emit(str(self.response.response))
         else:
-            self.log_signal.emit(f"Получен ответ с неподходящим correlation_id {props.correlation_id}. Игнорирование.")
+            self.log_signal.emit(f"Получен ответ с неподходящим correlation_id {props.correlation_id}. Игнорирование.", 'warning')
 
     def call(self, value, timeout):
         self.value = value
@@ -102,20 +103,20 @@ class Client(QThread):
             ),
             body=request.SerializeToString())
 
-        self.log_signal.emit(f"Отправлен запрос для request_id '{request.request_id}' со значением {request.request}, задержка {self.timeout} сек")
+        self.log_signal.emit(f"Отправлен запрос для request_id '{request.request_id}' со значением {request.request}, задержка {self.timeout} сек", 'info')
 
         wait_interval = 0.1
         elapsed_time = 0
 
         while self.response is None and elapsed_time <= self.timeout:
             if self.cancelled:
-                self.log_signal.emit(f"Запрос request_id '{request.request_id}' отменён")
+                self.log_signal.emit(f"Запрос request_id '{request.request_id}' отменён", 'info')
                 return
             self.connection.process_data_events(time_limit=wait_interval)
             elapsed_time += wait_interval
 
         if self.response is None:
-            self.log_signal.emit(f"Ответ для request_id '{request.request_id}' не получен в течении {self.timeout} сек.")
+            self.log_signal.emit(f"Ответ для request_id '{request.request_id}' не получен в течении {self.timeout} сек.", 'warning')
             self.responce_not_recieved.emit(True)
 
     def cancel_request(self):

@@ -2,18 +2,19 @@ from PyQt5.QtWidgets import QMainWindow, QDialog
 from UI.mainUI import Ui_MainWindow
 from properties_dialog import PropertiesDialog
 from client import Client
-from logger import LogHandler
-import logging
+from log_configs.logger import setup_logger
+from configparser import SectionProxy
+
 
 class MainWindow(QMainWindow):
-    def __init__(self, client_settings) -> None:
+    def __init__(self, client_settings: SectionProxy) -> None:
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.client_settings = client_settings
+        self.is_properties_edditable = True
         
-        self.log_handler = LogHandler(self.ui.logsPlainTextEdit)
-        self.init_logs_settings()
+        self.logger = setup_logger(self.ui.logsPlainTextEdit)
 
         self.client = Client(self.client_settings)
         self.client.response_received.connect(self.show_response)
@@ -25,19 +26,22 @@ class MainWindow(QMainWindow):
         self.ui.timeoutCheckBox.clicked.connect(self.is_enabled)
         self.ui.settingsPushButton.clicked.connect(self.open_properties_dialog)
 
-    def init_logs_settings(self) -> None:
-        self.logger = logging.getLogger(__name__)
-        self.logger.addHandler(self.log_handler)
-        self.logger.setLevel(logging.INFO)
-
     def show_response(self, response: int) -> None:
-        self.ui.sendRequesPushButton.setEnabled(True)
-        self.ui.cancelRequestPushButton.setEnabled(False)
-
         self.ui.requestResultLabel.setText(response)
+        self.set_buttons_enabled(True, False)
+        self.is_properties_edditable = True
 
-    def log_message(self, message: str) -> None:
-        self.logger.info(message)
+    def change_buttons(self) -> None:
+        self.set_buttons_enabled(True, False)
+        self.is_properties_edditable = True
+
+    def log_message(self, message: str, log_level: str) -> None:
+        if log_level == 'info':
+            self.logger.info(message)
+        if log_level == 'warning':
+            self.logger.warning(message)
+        if log_level == 'error':
+            self.logger.error(message)
 
     def send_request(self) -> None:
         request = self.ui.requestSpinBox.value()
@@ -45,14 +49,14 @@ class MainWindow(QMainWindow):
         if self.ui.timeoutCheckBox.isChecked():
             timeout = self.ui.timeoutDoubleSpinBox.value()
             
-        self.ui.sendRequesPushButton.setEnabled(False)
-        self.ui.cancelRequestPushButton.setEnabled(True)
+        self.set_buttons_enabled(False, True)
         self.client.call(request, timeout)
+        self.is_properties_edditable = False
 
-    def cancel_request(self):
+    def cancel_request(self) -> None:
         self.client.cancel_request()
-        self.ui.sendRequesPushButton.setEnabled(True)
-        self.ui.cancelRequestPushButton.setEnabled(False)
+        self.set_buttons_enabled(True, False)
+        self.is_properties_edditable = True
 
     def is_enabled(self) -> None:
         flag = self.ui.timeoutCheckBox.isChecked()
@@ -60,10 +64,11 @@ class MainWindow(QMainWindow):
 
     def open_properties_dialog(self) -> None:
         dialog = PropertiesDialog(self.client_settings)
+        dialog.set_editable(self.is_properties_edditable)
         if dialog.exec_() == QDialog.Accepted:
             self.client_settings = dialog.get_client_settings()
             self.client.update_settings(self.client_settings)
 
-    def change_buttons(self):
-        self.ui.sendRequesPushButton.setEnabled(True)
-        self.ui.cancelRequestPushButton.setEnabled(False)
+    def set_buttons_enabled(self, send_enabled: bool, cancel_enabled: bool) -> None:
+        self.ui.sendRequesPushButton.setEnabled(send_enabled)
+        self.ui.cancelRequestPushButton.setEnabled(cancel_enabled)

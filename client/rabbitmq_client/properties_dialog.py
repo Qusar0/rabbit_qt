@@ -26,3 +26,11 @@ class PropertiesDialog(QDialog):
             'client_uuid': self.ui.clientUuidTextEdit.toPlainText(),
             'connection_timeout': self.ui.connectionTimeoutDoubleSpinBox.value()
         }
+    
+    def set_editable(self, is_editable: bool):
+        self.ui.brokerAddresTextEdit.setReadOnly(not is_editable)
+        self.ui.exchangeNameTextEdit.setReadOnly(not is_editable)
+        self.ui.queueNameTextEdit.setReadOnly(not is_editable)
+        self.ui.clientUuidTextEdit.setReadOnly(not is_editable)
+        self.ui.connectionTimeoutDoubleSpinBox.setReadOnly(not is_editable)
+        self.ui.buttonBox.setDisabled(not is_editable)

@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
             timeout = self.ui.timeoutDoubleSpinBox.value()
             
         self.set_buttons_enabled(False, True)
-        self.client.send_request(request, timeout)
+        self.client.call(request, timeout)
         self.is_properties_edditable = False
 
     def cancel_request(self) -> None:

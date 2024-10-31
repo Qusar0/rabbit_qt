@@ -36,6 +36,8 @@ class MainWindow(QMainWindow):
         self.is_properties_edditable = True
 
     def log_message(self, message: str, log_level: str) -> None:
+        if log_level == 'debug':
+            self.logger.debug(message)
         if log_level == 'info':
             self.logger.info(message)
         if log_level == 'warning':
@@ -50,7 +52,7 @@ class MainWindow(QMainWindow):
             timeout = self.ui.timeoutDoubleSpinBox.value()
             
         self.set_buttons_enabled(False, True)
-        self.client.call(request, timeout)
+        self.client.send_request(request, timeout)
         self.is_properties_edditable = False
 
     def cancel_request(self) -> None:

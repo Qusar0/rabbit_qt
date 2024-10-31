@@ -5,12 +5,13 @@ from uuid import uuid4
 import pika.exceptions
 from protobuf.message_pb2 import Response, Request
 from time import time, sleep
+from client_states import *
 
 
 class Client(QThread):
     response_received = pyqtSignal(str)
     log_signal = pyqtSignal(str, str)
-    responce_not_recieved = pyqtSignal(bool)
+    responce_not_recieved = pyqtSignal()
 
     def __init__(self, client_settings):
         super().__init__()
@@ -19,12 +20,21 @@ class Client(QThread):
         self.request_id = None
         self.response = None
         self.cancelled = False
-        self.reconnecting = False  # Флаг для контроля переподключения
+        self.reconnecting = False
+        self.state = None
+
+    def set_state(self, new_state):
+        self.state = new_state
+        self.log_signal.emit(f"Состояние изменилось на {self.state.__class__.__name__}", 'debug')
+
+    def call(self):
+        self.state.call(self)
 
     def connect(self):
+        self.state = NewRequestState()
         start_time = time()
         connection_timeout = float(self.client_settings['connection_timeout'])
-
+        
         while time() - start_time < connection_timeout:
             try:
                 self.connection = pika.BlockingConnection(
@@ -55,7 +65,6 @@ class Client(QThread):
                 sleep(5)
         
         self.log_signal.emit(f"Не удалось подключиться за {connection_timeout} секунд.", 'error')
-        self.responce_not_recieved.emit(True)
 
     def on_response(self, ch, method, props, body):
         if props.correlation_id == self.corr_id: 
@@ -66,7 +75,7 @@ class Client(QThread):
         else:
             self.log_signal.emit(f"Получен ответ с неподходящим correlation_id {props.correlation_id}. Игнорирование.", 'warning')
 
-    def call(self, value, timeout):
+    def send_request(self, value, timeout):
         self.value = value
         self.timeout = timeout
         self.start()
@@ -94,20 +103,25 @@ class Client(QThread):
 
         self.corr_id = str(uuid4())
 
-        self.channel.basic_publish(
-            exchange=self.client_settings['exchange_name'],
-            routing_key=self.client_settings['queue_name'],
-            properties=pika.BasicProperties(
-                reply_to=self.callback_queue,
-                correlation_id=self.corr_id
-            ),
-            body=request.SerializeToString())
-
-        self.log_signal.emit(f"Отправлен запрос для request_id '{request.request_id}' со значением {request.request}, задержка {self.timeout} сек", 'info')
-
+        try:
+            self.channel.basic_publish(
+                exchange=self.client_settings['exchange_name'],
+                routing_key=self.client_settings['queue_name'],
+                properties=pika.BasicProperties(
+                    reply_to=self.callback_queue,
+                    correlation_id=self.corr_id
+                ),
+                body=request.SerializeToString())
+            self.call()
+            self.log_signal.emit(f"Отправлен запрос для request_id '{request.request_id}' со значением {request.request}, задержка {self.timeout} сек", 'info')
+            self.call()
+            
+        except Exception as e:
+            self.log_signal.emit(f"Ошибка при отправке запроса request_id {request.request_id}: {str(e)}", 'error')
+            return
+        
         wait_interval = 0.1
         elapsed_time = 0
-
         while self.response is None and elapsed_time <= self.timeout:
             if self.cancelled:
                 self.log_signal.emit(f"Запрос request_id '{request.request_id}' отменён", 'info')
@@ -117,7 +131,7 @@ class Client(QThread):
 
         if self.response is None:
             self.log_signal.emit(f"Ответ для request_id '{request.request_id}' не получен в течении {self.timeout} сек.", 'warning')
-            self.responce_not_recieved.emit(True)
+            self.responce_not_recieved.emit()
 
     def cancel_request(self):
         self.cancelled = True
@@ -125,7 +139,7 @@ class Client(QThread):
     def update_settings(self, new_settings):
         self.client_settings = new_settings
         self.reconnecting = True
-        self.start()
+        self.connect()
 
     def check_connection(self):
         try:

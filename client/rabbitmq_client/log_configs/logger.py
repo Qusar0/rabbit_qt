@@ -32,10 +32,10 @@ class ColoredFormatter(logging.Formatter):
 
 def setup_logger(log_widget):
     logger = logging.getLogger('colored_logger')
-    logger.setLevel(logging.INFO)
-
+    logger.setLevel(logging.DEBUG)
     log_handler = QtLogHandler(log_widget)
     formatter = logging.Formatter("%(levelname)s %(asctime)s %(message)s")
+    log_handler.setLevel(logging.INFO)
     log_handler.setFormatter(formatter)
     logger.addHandler(log_handler)
 

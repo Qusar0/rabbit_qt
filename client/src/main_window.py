@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import QMainWindow, QDialog
-from UI.mainUI import Ui_MainWindow
-from properties_dialog import PropertiesDialog
-from client import Client
-from log_configs.logger import setup_logger
+from ui.mainWindowUI import Ui_MainWindow
+from src.properties_dialog import PropertiesDialog
+from rabbitmq_client.client import Client
+from src.log_configs.logger import setup_logger
 from configparser import SectionProxy
 
 
@@ -20,6 +20,7 @@ class MainWindow(QMainWindow):
         self.client.response_received.connect(self.show_response)
         self.client.responce_not_recieved.connect(self.change_buttons)
         self.client.log_signal.connect(self.log_message)
+        self.client.state_status.connect(self.show_status)
 
         self.ui.sendRequesPushButton.clicked.connect(self.send_request)
         self.ui.cancelRequestPushButton.clicked.connect(self.cancel_request)
@@ -45,7 +46,11 @@ class MainWindow(QMainWindow):
         if log_level == 'error':
             self.logger.error(message)
 
+    def show_status(self, status: str) -> None:
+        self.ui.stateRequestLabel.setText(status)
+
     def send_request(self) -> None:
+        self.ui.requestResultLabel.setText("Неопределено")
         request = self.ui.requestSpinBox.value()
         timeout = 0
         if self.ui.timeoutCheckBox.isChecked():

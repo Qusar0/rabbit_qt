@@ -1,12 +1,12 @@
 from PyQt5.QtWidgets import QApplication
 import sys
-from main_window import MainWindow
+from src.main_window import MainWindow
 import configparser
 
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
-    config.read('../config.ini')
+    config.read('../configs/client_config.ini')
     client_settings = config['Client']
 
     app = QApplication(sys.argv)

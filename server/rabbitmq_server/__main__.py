@@ -6,7 +6,7 @@ from rabbitmq_server import Server
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read('../../configs/server_config.ini')
     server_settings = config['Server']
     logging.basicConfig(level=server_settings['log_level'], filename=server_settings['log_file'])
 

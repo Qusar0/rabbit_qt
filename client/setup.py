@@ -1,4 +1,24 @@
-from setuptools import setup
+from setuptools import setup, find_packages
+from setuptools.command.build_py import build_py
+import os
+import subprocess
+
+class CustomBuild(build_py):
+    def run(self):
+        ui_dir = 'ui/'
+        for ui_file in os.listdir(ui_dir):
+            if ui_file.endswith('.ui'):
+                py_file = os.path.join(ui_dir, f"{os.path.splitext(ui_file)[0]}UI.py")
+                ui_file_path = os.path.join(ui_dir, ui_file)
+                subprocess.check_call(['pyside2-uic', ui_file_path, '-o', py_file])
+
+        proto_dir = '../protobufs/'
+        for proto_file in os.listdir(proto_dir):
+            if proto_file.endswith('.proto'):
+                proto_path = os.path.join(proto_dir, proto_file)
+                subprocess.check_call(['protoc', f'--proto_path={proto_dir}', '--python_out=./protobuf/', proto_path])
+
+        super().run()
 
 setup(
     name='rabbitmq_client',
@@ -9,5 +29,6 @@ setup(
     description='Работа с брокером сообщений, клиентская часть',
     long_description="",
     zip_safe=False,
-    packages=['rabbitmq_client'],
+    packages=find_packages(),
+    cmdclass={'build_py': CustomBuild},  # Add custom build command
 )

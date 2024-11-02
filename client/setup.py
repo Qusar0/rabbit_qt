@@ -10,7 +10,7 @@ class CustomBuild(build_py):
             if ui_file.endswith('.ui'):
                 py_file = os.path.join(ui_dir, f"{os.path.splitext(ui_file)[0]}UI.py")
                 ui_file_path = os.path.join(ui_dir, ui_file)
-                subprocess.check_call(['pyside2-uic', ui_file_path, '-o', py_file])
+                subprocess.check_call(['pyuic5', ui_file_path, '-o', py_file])
 
         proto_dir = '../protobufs/'
         for proto_file in os.listdir(proto_dir):

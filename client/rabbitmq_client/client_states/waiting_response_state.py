@@ -1,6 +1,7 @@
 from rabbitmq_client.client_states.base_state import ClientState
 from rabbitmq_client.client_states.response_received_state import ResponseReceivedState
 from rabbitmq_client.client_states.waiting_response_calceled_state import WaitingResponseCanceledState
+from rabbitmq_client.client_states.error_receiving_response_state import ErrorReceivingResponseState
 from protobuf.message_pb2 import Response
 
 

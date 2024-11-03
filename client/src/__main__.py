@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QApplication
 import sys
-from src.main_window import MainWindow
+from ui.main_window import MainWindow
 import configparser
 
 

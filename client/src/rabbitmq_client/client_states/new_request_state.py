@@ -1,5 +1,5 @@
 from time import time, sleep
-from rabbitmq_client.client_states.base_state import ClientState
+from src.rabbitmq_client.client_states.base_state import ClientState
 import pika
 
 

@@ -5,7 +5,7 @@ import subprocess
 
 class CustomBuild(build_py):
     def run(self):
-        ui_dir = 'ui/'
+        ui_dir = './src/ui/'
         for ui_file in os.listdir(ui_dir):
             if ui_file.endswith('.ui'):
                 py_file = os.path.join(ui_dir, f"{os.path.splitext(ui_file)[0]}UI.py")
@@ -16,10 +16,10 @@ class CustomBuild(build_py):
         for proto_file in os.listdir(proto_dir):
             if proto_file.endswith('.proto'):
                 proto_path = os.path.join(proto_dir, proto_file)
-                subprocess.check_call(['protoc', f'--proto_path={proto_dir}', '--python_out=./protobuf/', proto_path])
+                subprocess.check_call(['protoc', f'--proto_path={proto_dir}', '--python_out=./src/protobuf/', proto_path])
 
         super().run()
-
+print(find_packages())
 setup(
     name='rabbitmq_client',
     version='1.0.0',
@@ -30,5 +30,5 @@ setup(
     long_description="",
     zip_safe=False,
     packages=find_packages(),
-    cmdclass={'build_py': CustomBuild},  # Add custom build command
+    cmdclass={'build_py': CustomBuild},
 )

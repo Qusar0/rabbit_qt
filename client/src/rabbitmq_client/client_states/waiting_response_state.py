@@ -1,8 +1,8 @@
-from rabbitmq_client.client_states.base_state import ClientState
-from rabbitmq_client.client_states.response_received_state import ResponseReceivedState
-from rabbitmq_client.client_states.waiting_response_calceled_state import WaitingResponseCanceledState
-from rabbitmq_client.client_states.error_receiving_response_state import ErrorReceivingResponseState
-from protobuf.message_pb2 import Response
+from src.rabbitmq_client.client_states.base_state import ClientState
+from src.rabbitmq_client.client_states.response_received_state import ResponseReceivedState
+from src.rabbitmq_client.client_states.waiting_response_calceled_state import WaitingResponseCanceledState
+from src.rabbitmq_client.client_states.error_receiving_response_state import ErrorReceivingResponseState
+from src.protobuf.message_pb2 import Response
 
 
 class WaitingResponseState(ClientState):
@@ -23,7 +23,7 @@ class WaitingResponseState(ClientState):
     def run(self, client):
         wait_interval = 0.1
         elapsed_time = 0
-
+        
         while client.response is None and elapsed_time <= client.timeout + wait_interval:
             if client.cancelled:
                 client.set_state(WaitingResponseCanceledState())

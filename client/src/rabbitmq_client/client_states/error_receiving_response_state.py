@@ -1,5 +1,5 @@
-from rabbitmq_client.client_states.base_state import ClientState
-from rabbitmq_client.client_states.new_request_state import NewRequestState
+from src.rabbitmq_client.client_states.base_state import ClientState
+from src.rabbitmq_client.client_states.new_request_state import NewRequestState
 
 
 class ErrorReceivingResponseState(ClientState):

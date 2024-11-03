@@ -1,7 +1,8 @@
-from rabbitmq_client.client_states.base_state import ClientState
-from rabbitmq_client.client_states.new_request_state import NewRequestState
+from src.rabbitmq_client.client_states.base_state import ClientState
+from src.rabbitmq_client.client_states.new_request_state import NewRequestState
 
-class ResponseReceivedState(ClientState):
+
+class ErrorSendingRequestState(ClientState):
     def connect(self, client):
         pass
 
@@ -22,4 +23,4 @@ class ResponseReceivedState(ClientState):
         pass
 
     def get_state_str(self):
-        return "Ответ получен"
+        return "Ошибка отправки запроса"

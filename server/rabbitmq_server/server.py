@@ -21,22 +21,29 @@ class Server:
             if request.proccess_time_in_seconds > 0:
                 await asyncio.sleep(request.proccess_time_in_seconds)
 
-            response = Response(
-                request_id=request.request_id,
-                response=request.request * 2
-            )
+            response = self.get_response(request.request_id, request.request)
+            
+            if response is not None:
+                response_message = aio_pika.Message(
+                    body=response.SerializeToString(),
+                    correlation_id=message.correlation_id
+                )
 
-            response_message = aio_pika.Message(
-                body=response.SerializeToString(),
-                correlation_id=message.correlation_id
-            )
+                await self.channel.default_exchange.publish(
+                    response_message,
+                    routing_key=message.reply_to
+                )
+                logging.info(f"Sent response: {response.request_id}, value: {response.response} at time {datetime.now()}")
 
-            await self.channel.default_exchange.publish(
-                response_message,
-                routing_key=message.reply_to
-            )
-            logging.info(f"Sent response: {response.request_id}, value: {response.response} at time {datetime.now()}")
+    def get_response(self, request_id, request):
+        response = None
+        try:
+            response = Response(request_id=request_id, response=request * 2)
+        except TypeError as e:
+            logging.error(f"Invalid type to create Response: {e}")
 
+        return response
+    
     async def connect_to_rabbitmq(self):
         while True:
             try:

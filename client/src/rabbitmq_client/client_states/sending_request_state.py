@@ -1,9 +1,9 @@
-from rabbitmq_client.client_states.base_state import ClientState
-from rabbitmq_client.client_states.new_request_state import NewRequestState
-from rabbitmq_client.client_states.waiting_response_state import WaitingResponseState
+from src.rabbitmq_client.client_states.base_state import ClientState
+from src.rabbitmq_client.client_states.new_request_state import NewRequestState
+from src.rabbitmq_client.client_states.waiting_response_state import WaitingResponseState
+from src.protobuf.message_pb2 import Request
 import pika
 from uuid import uuid4
-from protobuf.message_pb2 import Request
 
 
 class SendingRequestState(ClientState):

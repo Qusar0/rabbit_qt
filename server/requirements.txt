@@ -1,2 +1,2 @@
 aio_pika
-protobuf
+protobuf==3.20

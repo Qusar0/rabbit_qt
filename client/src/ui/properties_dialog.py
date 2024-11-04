@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog
-from ui.propertiesUI import Ui_Dialog
+from src.ui.propertiesUI import Ui_Dialog
 
 class PropertiesDialog(QDialog):
     def __init__(self, client_settings):

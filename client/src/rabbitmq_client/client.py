@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QThread, pyqtSignal
-from rabbitmq_client.client_states.new_request_state import NewRequestState
-from rabbitmq_client.client_states.sending_request_state import SendingRequestState
+from src.rabbitmq_client.client_states.new_request_state import NewRequestState
+from src.rabbitmq_client.client_states.sending_request_state import SendingRequestState
 
 
 class Client(QThread):

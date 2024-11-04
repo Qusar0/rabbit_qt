@@ -1,4 +1,4 @@
-from protobuf.message_pb2 import Request, Response
+from rabbitmq_server.protobuf.message_pb2 import Request, Response
 from datetime import datetime
 import aio_pika
 import logging

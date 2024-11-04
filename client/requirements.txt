@@ -1,3 +1,0 @@
-pika
-PyQt5
-protobuf==3.20

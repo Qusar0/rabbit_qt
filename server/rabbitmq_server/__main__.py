@@ -1,10 +1,10 @@
 import asyncio
 import configparser
 import logging
-from server import Server
+from rabbitmq_server.server import Server
 
 
-if __name__ == "__main__":
+def main():
     config = configparser.ConfigParser()
     config.read('../configs/server_config.ini')
     server_settings = config['Server']

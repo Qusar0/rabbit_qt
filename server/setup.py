@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py
 import os
 import subprocess
@@ -21,6 +21,15 @@ setup(
     description='Работа с брокером сообщений, серверная часть',
     long_description="",
     zip_safe=False,
-    packages=['rabbitmq_server'],
-    cmdclass={'build_py': CustomBuild}
+    packages=find_packages(),
+    cmdclass={'build_py': CustomBuild},
+    install_requires=[
+        'aio_pika',
+        'protobuf==3.20'
+    ],
+    entry_points={
+        'console_scripts': [
+            'server_rabbitmq=rabbitmq_server.__main__:main'
+        ]
+    }
 )

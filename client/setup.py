@@ -19,7 +19,7 @@ class CustomBuild(build_py):
                 subprocess.check_call(['protoc', f'--proto_path={proto_dir}', '--python_out=./src/protobuf/', proto_path])
 
         super().run()
-print(find_packages())
+
 setup(
     name='rabbitmq_client',
     version='1.0.0',
@@ -31,4 +31,14 @@ setup(
     zip_safe=False,
     packages=find_packages(),
     cmdclass={'build_py': CustomBuild},
+    install_requires=[
+        'pika',
+        'PyQt5',
+        'protobuf==3.20',
+    ],
+    entry_points={
+        'console_scripts': [
+            'client_rabbitmq=src.__main__:main'
+        ]
+    }
 )

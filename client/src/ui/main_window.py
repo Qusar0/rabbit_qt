@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import QMainWindow, QDialog
-from ui.mainWindowUI import Ui_MainWindow
-from ui.properties_dialog import PropertiesDialog
-from rabbitmq_client.client import Client
-from log_configs.logger import setup_logger
+from src.ui.mainWindowUI import Ui_MainWindow
+from src.ui.properties_dialog import PropertiesDialog
+from src.rabbitmq_client.client import Client
+from src.log_configs.logger import setup_logger
 from configparser import SectionProxy
 
 
